@@ -1,0 +1,22 @@
+name: TestDeployReactApp
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2 # Pull code tu repo ve may ao
+      - run: mkdir -p ~/.ssh
+      - run: echo "${{secrets.SSH_PRIVATE_KEY}}" > ~/.ssh/private_key
+      - run: chmod 600 ~/.ssh/private_key
+      - run: npm install
+      - run: npm run build
+      - run: ls -la
+      - name: Send file to server
+        run: rsync -azhv -e 'ssh -i ~/.ssh/private_key -o StrictHostKeyChecking=no' build/*  --rsync-path='sudo rsync' $user@$host:$target
+        env:
+          user: root
+          host: 172.105.120.120
+          target: /var/www/html
